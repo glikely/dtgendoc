@@ -27,25 +27,33 @@ from pyparsing import *
 from struct import pack
 
 
-# Test code to parse DTS Format
-def parse_dts(string):
-    byteexpr = Word(alphanums).setParseAction(lambda s,l,t: [int(t[0],base=16)])
-    byteexpr = nestedExpr('[', ']', byteexpr)
-    byteexpr.setParseAction(lambda s,l,t: [ pack('!%iB'%len(t[0]), *t[0]) ])
+# Grammer
 
-    cellexpr = Word(alphanums).setParseAction(lambda s,l,t: [int(t[0],base=0)])
-    cellexpr = nestedExpr('<', '>', cellexpr)
-    cellexpr.setParseAction(lambda s,l,t: [ pack('!%iI'%len(t[0]), *t[0]) ])
+# Property value expressions
+propbyte = Word(alphanums).setParseAction(lambda s,l,t: [int(t[0],base=16)])
+propbyte = nestedExpr('[', ']', propbyte)
+propbyte.setParseAction(lambda s,l,t: [ pack('!%iB'%len(t[0]), *t[0]) ])
 
-    strexpr = QuotedString(quoteChar='"', escChar='\\', escQuote='\\\\')
-    strexpr.setParseAction(lambda s,l,t: [ t[0].encode() + b'\0' ])
+propcell = Word(alphanums).setParseAction(lambda s,l,t: [int(t[0],base=0)])
+propcell = nestedExpr('<', '>', propcell)
+propcell.setParseAction(lambda s,l,t: [ pack('!%iI'%len(t[0]), *t[0]) ])
 
-    expr = OneOrMore (byteexpr | cellexpr | strexpr)
-    expr.setParseAction(lambda s,l,t: [ b''.join(t) ])
-    return expr.parseString(string)[0]
+propstr = QuotedString(quoteChar='"', escChar='\\', escQuote='\\\\')
+propstr.setParseAction(lambda s,l,t: [ t[0].encode() + b'\0' ])
 
+propval = OneOrMore (propbyte | propcell | propstr)
+propval.setParseAction(lambda s,l,t: [ b''.join(t) ])
+
+propnodename = Word(alphanums+",._+*#?@-")
+
+label = Combine(Word(alphas+'_') + Optional(Word(alphanums+'_')) + Suppress(':'))
+
+prop = ZeroOrMore(label) + propnodename + Optional('=' + propval) + ';'
+
+
+# Unittests
 if __name__ == "__main__":
-    tests = [
+    propvaltests = [
         ['str0', '""', b'\0'],
         ['str1', '"abcdefg"', b'abcdefg\0'],
         ['bytes0', '[ ]', b''],
@@ -68,11 +76,11 @@ if __name__ == "__main__":
 
     def generate_test(dts_prop, dtb_prop):
         def test(self):
-            self.assertEqual(parse_dts(dts_prop), dtb_prop)
+            self.assertEqual(propval.parseString(dts_prop)[0], dtb_prop)
         return test
 
-    for t in tests:
-        setattr(TestSequence, "test_"+t[0], generate_test(t[1], t[2]))
+    for t in propvaltests:
+        setattr(TestSequence, "test_propval_"+t[0], generate_test(t[1], t[2]))
     unittest.main()
 
 
