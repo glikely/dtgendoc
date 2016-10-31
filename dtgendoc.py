@@ -70,16 +70,17 @@ def gen_md(doc):
 				sys.stdout.write("    *Refer to [" + '{}'.format(ref) +"](" + '{}'.format(ref) + ") for more information.*\n")
 		print
 
-	# At least one example is required, but support multiple
-	print "## Example"
-	for e in doc["example"]:
-		if "description" in e:
-			print e["description"]
+	# Iterate through the examples
+	if "example" in doc:
+		print "## Example"
+		for e in doc["example"]:
+			if "description" in e:
+				print e["description"]
+			print
+			print "```"
+			print e["dts"]
+			print "```"
 		print
-		print "```"
-		print e["dts"]
-		print "```"
-	print
 
 	# Maintainer is optional (it might someday become required, but for now
 	# this is based on the MAINTAINERS entry where that works most of the
