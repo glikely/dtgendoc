@@ -43,16 +43,25 @@ propstr.setParseAction(lambda s,l,t: [ t[0].encode() + b'\0' ])
 
 propval = OneOrMore (propbyte | propcell | propstr)
 propval.setParseAction(lambda s,l,t: [ b''.join(t) ])
+propval.setResultsName("val")
 
-propnodename = Word(alphanums+",._+*#?@-")
+propnodename = Word(alphanums+",._+*#?@-").setResultsName("name")
 
 label = Combine(Word(alphas+'_') + Optional(Word(alphanums+'_')) + Suppress(':'))
+label.setResultsName("label")
 
-prop = ZeroOrMore(label) + propnodename + Optional('=' + propval) + ';'
+prop = Group(ZeroOrMore(label) + propnodename + Optional(Suppress('=') + propval) + Suppress(';'))
+
+node = Forward()
+nodebody = nestedExpr('{', '}', node | prop)
+node <<= ZeroOrMore(label) + propnodename + nodebody + Suppress(';')
+rootnode = '/' + nodebody + Suppress(';')
 
 
 # Unittests
 if __name__ == "__main__":
+    import pprint
+
     propvaltests = [
         ['str0', '""', b'\0'],
         ['str1', '"abcdefg"', b'abcdefg\0'],
@@ -71,8 +80,29 @@ if __name__ == "__main__":
         ['mixed1', '"test" <256>', b'test\0\0\0\1\0'],
     ]
 
+    proptests = [
+    ]
+
+    test_dts = '''
+    / {
+        #address-cells = <1>;
+        #size-cells = <1>;
+        compatible = "acme,fancy1";
+        cpus {
+            #address-cells = <1>;
+            #size-cells = <1>;
+            cpu@0 { reg = <0>; };
+            cpu@1 { reg = <1>; };
+            cpu@2 { reg = <2>; };
+            cpu@3 { reg = <3>; };
+        };
+    };
+    '''
+
     class TestSequence(unittest.TestCase):
-        pass
+        def test_fulldts(self):
+            tree = rootnode.parseString(test_dts)
+            print(tree)
 
     def generate_test(dts_prop, dtb_prop):
         def test(self):
@@ -82,5 +112,3 @@ if __name__ == "__main__":
     for t in propvaltests:
         setattr(TestSequence, "test_propval_"+t[0], generate_test(t[1], t[2]))
     unittest.main()
-
-
