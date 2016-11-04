@@ -103,3 +103,69 @@ is the canonical example of syntax and format to use when writing
 a DT binding document. It is maintained with the latest formatting
 conventions, making it the best starting point when writing a new DT
 binding.
+
+
+
+
+Grammar:
+- Plain words represent types
+- Quoted strings "xyz" represent exact strings
+
+property = propname "=" propval ";"
+propname = [a-zA-Z0-9_-@]
+
+Operators (on tokens):
+   +    one or more item
+   *    zero or more items
+   *n   exactly n items where n = [0-9]+
+   *(x) expression x resolving number of items
+  {,}   choice between several tokens
+  (,)   Arguments to a token type
+ [...]  Optional tokens
+ "..."  shortcut for literal string
+ Note: No group operator, create a new type instead
+
+Primitives types:
+  none = empty value
+  byte = 8 bit value range(0..0xff)
+  cell = 32bit value range(0..0xffffffff)
+  string = null terminated string
+  phandle = cell reference to another node
+
+Expressions resolving a value (useful for variable cell numbers)
+  (propname) = value from property "propname"
+  (propname[x]) = value in property "propname" at index 'x'
+  (../propname) = value from parent node property "propname"
+  (^propname) = value from property "propname" in node or
+                ancestor node
+  (../^propname) = value from ancestor node property "propname"
+  (&phandle_prop/propname) =
+        dereference node from value in "phandle_prop" and
+        read value from property "propname"
+  (@n/propname) =
+        dereference node from value at cell offset 'n' and
+        read value from property "propname"
+
+compound types:
+  string-list = string+
+  addr = cell * (.../#address-cells)
+  size = cell * (.../#size-cells)
+  window = addr size
+  intspec = cell * (&^interrupt-parent/#interrupt-cells)
+  intspecfull = phandle cell*(@0/#interrupt-cells)
+  gpiospec = phandle cell * (@0/#gpio-cells)
+
+
+String operators (prop/node name and inside a string):
+
+
+Schema examples:
+properties
+   compatible = string-list
+   #address-cells = cell(min=0, max=8)
+   #size-cells = cell(min=0, max=8)
+   reg = window+
+   interrupt-parent = phandle
+   interrupts = int-spec+
+   interrupts-extended = phandle(label)
+   gpio-names = string+
