@@ -47,14 +47,14 @@ propval.setResultsName("val")
 
 propnodename = Word(alphanums+",._+*#?@-").setResultsName("name")
 
-label = Combine(Word(alphas+'_') + Optional(Word(alphanums+'_')) + Suppress(':'))
+label = Word(alphas+'_', alphanums+'_') + Suppress(':')
 label.setResultsName("label")
 
 prop = Group(ZeroOrMore(label) + propnodename + Optional(Suppress('=') + propval) + Suppress(';'))
 
 node = Forward()
 nodebody = nestedExpr('{', '}', node | prop)
-node <<= ZeroOrMore(label) + propnodename + nodebody + Suppress(';')
+node <<= Group(ZeroOrMore(label) + propnodename + nodebody + Suppress(';'))
 rootnode = '/' + nodebody + Suppress(';')
 
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         #address-cells = <1>;
         #size-cells = <1>;
         compatible = "acme,fancy1";
-        cpus {
+        mylabel: cpus {
             #address-cells = <1>;
             #size-cells = <1>;
             cpu@0 { reg = <0>; };
