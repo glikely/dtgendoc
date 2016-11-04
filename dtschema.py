@@ -25,7 +25,8 @@
 import unittest
 from pyparsing import *
 from struct import pack
-from voluptuous import Schema, Match, Email
+from voluptuous import Schema, Match
+#from voluptuous import Schema, Match, Email
 from email.utils import parseaddr
 import yaml
 from pprint import pprint
@@ -35,7 +36,8 @@ from pprint import pprint
 
 def NameEmail(v):
     name, addr = parseaddr(v)
-    s = Schema({'name':str, 'addr': Email()})
+    #s = Schema({'name':str, 'addr': Email()})
+    s = Schema({'name':str, 'addr': str})
     s({'name': name, 'addr': addr})
     return v
 
