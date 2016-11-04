@@ -65,15 +65,14 @@ doc: >
   This describes a binding for a non-existent device
 
 types:
+- cell
+- phandle
+- string
 
 match:
 - compatible = string-list(contains="acme,toaster-1.0");
 
 schema:
-  [spi-cs-high;]
-  [spi-*-gpio = gpio-specifier;]
-  [
-  ]
 - property: spi-cs-high
   value: empty
   doc: >
