@@ -78,7 +78,7 @@ the DT binding format:
 
 * [R] properties: sequence of properties
       [R] name: name of property surrounded in double quotes
-      [R} category: category of property. One of "required",
+      [R] category: category of property. One of "required",
                     "optional", or "deprecated".
       [R] type: type of property. One of "string", "int", "empty",
                 "phandle", or "array".
